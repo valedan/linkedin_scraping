@@ -3,27 +3,13 @@ require 'mechanize'
 require 'csv'
 require 'fileutils'
 
-# SPEC:
-#       - Take fail log for candidate, with nil field errors removed along with others that will not be solved by this
-#       - For each, go to DDG and perform the standard search query (full name + title + employer)
-#       - Take every LIN url that contains matching full name in title into a hash
-#       - Each url is a key in the hash
-#       - Assign each url a value equal to the number of search query words (excluding name) that appear in the DDG info box
-#       - Sort hash by value
-#       - Take sorted keys of hash, concat into string and add to new field in success_log
-#       - Duplicate catching: for each candidate, check if output already has that id as key
+class String
+  def alnum
+    return self.gsub(/[^\p{Alnum}\p{Space}-]/u, '')
+  end
+end
 
-
-
-$proxies = {beijing_telco: {ip: '121.69.28.86', port: '8118'},
-            us_hiw: {ip: '165.2.139.51', port: '80'},
-            can_sas: {ip: '198.169.246.30', port: '80'},
-            spain_tel: {ip: '195.140.157.138', port: '443'},
-            china_mobile: {ip: '117.136.234.12', port: '80'}
-            }
-
-$user_agents = {mozilla_windows: "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1",
-                google: "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"}
+$user_agents = {mozilla_windows: "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1"}
 
 $headers = ["First Name",	"Last Name",	"Employer Organization Name 1",
   	        "Employer 1 Title",	"Email",	"CV TR",	"Candidate Source",	"Candidate ID",
@@ -31,13 +17,12 @@ $headers = ["First Name",	"Last Name",	"Employer Organization Name 1",
 
 puts "\n\n\n\n\n\n\nDUCK SCRAPER STARTING\n\n\n\n\n\n"
 
-
 def main
   recruiter = 'SeanMurphy'
 
   output_dir = "./../LIN#{recruiter}"
-  fail_log = "./../LIN#{recruiter}/ddg_fail_log2.csv"
-  success_log = "./../LIN#{recruiter}/ddg_success_log2.csv"
+  fail_log = "./../LIN#{recruiter}/ddg_fail_log3.csv"
+  success_log = "./../LIN#{recruiter}/ddg_success_log3.csv"
   create_files(recruiter, fail_log, success_log)
   input_csv = "#{output_dir}/ddg_fail_log.csv"
   total = %x(wc -l "#{input_csv}").split[0].to_i
@@ -58,8 +43,6 @@ def main
         puts "\n"
         puts "Input Row #{count}/#{total}"
         agent = Mechanize.new
-        #agent = create_proxy(agent, $proxies.keys.sample)
-        #agent = create_proxy(agent, 'beijing_telco')
         agent.user_agent = $user_agents["mozilla_windows".to_sym]
         query = create_query(row)
         query.gsub!(/\?/, '')
@@ -142,8 +125,10 @@ def append_to_csv(file, row)
   f.close
 end
 
+
+
 def aggregate_urls(page, first_name, last_name, employer, title)
-  full_name = "#{first_name} #{last_name}"
+  full_name = "#{first_name} #{last_name}".alnum
   results = page.css("#links .results_links_deep")
   good_matches = []
   okay_matches = []
@@ -155,23 +140,25 @@ def aggregate_urls(page, first_name, last_name, employer, title)
   results.each do |result|
 
     if result.at_css("a.large")
-      url_text = result.css("a.large").text
+      url_text = result.css("a.large").text.alnum
       url = result.at_css('a.large')['href']
     #  puts "url text: #{url_text}"
       paragraph = result.css("div.snippet").text
     #  puts "paragraph: #{paragraph}"
       valid_url = true
-      bio = "#{paragraph}"
+      bio = "#{paragraph}".alnum
       short_title = title.split
       short_title = "#{short_title[0]}"
       short_title += " #{short_title[1]}" if short_title[1]
+      short_title = short_title.alnum
     #  puts "short title: #{short_title}"
       short_employer = employer.split
-      short_employer = "#{short_employer[0]}"
+      short_employer = "#{short_employer[0]}".alnum
     #  puts "short employer: #{short_employer}"
-      if url.include?("/dir/")
-        valid_url = false
-      end
+
+      # if url.include?("/dir/")
+      #   valid_url = false
+      # end
       unless url.include?("linkedin")
         valid_url = false
       end
@@ -216,11 +203,5 @@ def name_check(lin_name, csv_name)
   return match
 end
 
-def create_proxy(agent, proxy_name)
-  proxy_requested = $proxies["#{proxy_name}".to_sym]
-  p "using proxy:  #{proxy_requested}"
-  agent.set_proxy(proxy_requested["ip".to_sym], proxy_requested["port".to_sym])
-  return agent
-end
 
 main
