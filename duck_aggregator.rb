@@ -33,13 +33,13 @@ puts "\n\n\n\n\n\n\nDUCK SCRAPER STARTING\n\n\n\n\n\n"
 
 
 def main
-  recruiter = 'SheilaMcNeice'
+  recruiter = 'SeanMurphy'
 
   output_dir = "./../LIN#{recruiter}"
-  fail_log = "./../LIN#{recruiter}/ddg_fail_log.csv"
-  success_log = "./../LIN#{recruiter}/ddg_success_log.csv"
+  fail_log = "./../LIN#{recruiter}/ddg_fail_log2.csv"
+  success_log = "./../LIN#{recruiter}/ddg_success_log2.csv"
   create_files(recruiter, fail_log, success_log)
-  input_csv = "#{output_dir}/LIN#{recruiter}_round2.csv"
+  input_csv = "#{output_dir}/ddg_fail_log.csv"
   total = %x(wc -l "#{input_csv}").split[0].to_i
   puts "Length of input: #{total} rows.\n"
   count = 0
@@ -63,7 +63,7 @@ def main
         agent.user_agent = $user_agents["mozilla_windows".to_sym]
         query = create_query(row)
         query.gsub!(/\?/, '')
-        #puts query
+        puts query
         row["Search Query"] = query
         duck_page = agent.get('https://www.duckduckgo.com/html')
         search_form = duck_page.form_with(id: 'search_form_homepage')
@@ -180,9 +180,11 @@ def aggregate_urls(page, first_name, last_name, employer, title)
       end
       if name_check(url_text, full_name) && valid_url
         valid_url = "okay"
+        puts "okay match"
       end
       if valid_url == "okay" && bio.downcase.include?(short_title.downcase) && bio.downcase.include?(short_employer.downcase)
         valid_url = "good"
+        puts "good match"
       end
       if valid_url == "good"
         good_matches << url
@@ -197,14 +199,20 @@ def aggregate_urls(page, first_name, last_name, employer, title)
 end
 
 def name_check(lin_name, csv_name)
+  puts lin_name
+  puts csv_name
   csv_array = csv_name.downcase.split(" ")
+  p csv_array
   lin_array = lin_name.downcase.split(" ")
+  p lin_array
   match = true
   csv_array.each do |chunk|
+    puts chunk
     unless lin_array.include?(chunk)
       match = false
     end
   end
+  puts match
   return match
 end
 
