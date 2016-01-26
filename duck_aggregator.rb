@@ -2,6 +2,7 @@ require 'rubygems'
 require 'mechanize'
 require 'csv'
 require 'fileutils'
+require 'i18n'
 
 class String
   def alnum
@@ -21,8 +22,8 @@ def main
   recruiter = 'SeanMurphy'
 
   output_dir = "./../LIN#{recruiter}"
-  fail_log = "./../LIN#{recruiter}/ddg_fail_log3.csv"
-  success_log = "./../LIN#{recruiter}/ddg_success_log3.csv"
+  fail_log = "./../LIN#{recruiter}/ddg_fail_log4.csv"
+  success_log = "./../LIN#{recruiter}/ddg_success_log4.csv"
   create_files(recruiter, fail_log, success_log)
   input_csv = "#{output_dir}/ddg_fail_log.csv"
   total = %x(wc -l "#{input_csv}").split[0].to_i
@@ -128,7 +129,8 @@ end
 
 
 def aggregate_urls(page, first_name, last_name, employer, title)
-  full_name = "#{first_name} #{last_name}".alnum
+  I18n.available_locales = [:en]
+  full_name = I18n.transliterate("#{first_name} #{last_name}").alnum
   results = page.css("#links .results_links_deep")
   good_matches = []
   okay_matches = []
@@ -140,20 +142,20 @@ def aggregate_urls(page, first_name, last_name, employer, title)
   results.each do |result|
 
     if result.at_css("a.large")
-      url_text = result.css("a.large").text.alnum
+      url_text = I18n.transliterate(result.css("a.large").text).alnum
       url = result.at_css('a.large')['href']
     #  puts "url text: #{url_text}"
       paragraph = result.css("div.snippet").text
     #  puts "paragraph: #{paragraph}"
       valid_url = true
-      bio = "#{paragraph}".alnum
+      bio = I18n.transliterate("#{paragraph}").alnum
       short_title = title.split
       short_title = "#{short_title[0]}"
       short_title += " #{short_title[1]}" if short_title[1]
-      short_title = short_title.alnum
+      short_title = I18n.transliterate(short_title).alnum
     #  puts "short title: #{short_title}"
       short_employer = employer.split
-      short_employer = "#{short_employer[0]}".alnum
+      short_employer = I18n.transliterate("#{short_employer[0]}").alnum
     #  puts "short employer: #{short_employer}"
 
       # if url.include?("/dir/")
