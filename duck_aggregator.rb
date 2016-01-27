@@ -6,7 +6,7 @@ require 'i18n'
 
 class String
   def alnum
-    return self.gsub(/[^\p{Alnum}\p{Space}-]/u, ' ')
+    return self.gsub(/[^\p{Alnum}\p{Space}]/u, ' ')
   end
 end
 
@@ -22,8 +22,8 @@ def main
   recruiter = 'SeanMurphy'
 
   output_dir = "./../LIN#{recruiter}"
-  fail_log = "./../LIN#{recruiter}/ddg_fail_log3.csv"
-  success_log = "./../LIN#{recruiter}/ddg_success_log3.csv"
+  fail_log = "./../LIN#{recruiter}/ddg_fail_log5.csv"
+  success_log = "./../LIN#{recruiter}/ddg_success_log5.csv"
   create_files(recruiter, fail_log, success_log)
   input_csv = "#{output_dir}/ddg_fail_log.csv"
   total = %x(wc -l "#{input_csv}").split[0].to_i
@@ -46,6 +46,11 @@ def main
         agent = Mechanize.new
         agent.user_agent = $user_agents["mozilla_windows".to_sym]
         #need to sanitize data before constructing query
+        I18n.available_locales = [:en]
+        row["First Name"].gsub!(row["Email"], ' ')
+        row["Last Name"].gsub!(row["Email"], ' ')
+        row["First Name"] = I18n.transliterate(row["First Name"]).alnum
+        row["Last Name"]  = I18n.transliterate(row["Last Name"]).alnum
         query = create_query(row)
         query.gsub!(/\?/, '')
         puts query
@@ -130,8 +135,7 @@ end
 
 
 def aggregate_urls(page, first_name, last_name, employer, title)
-  I18n.available_locales = [:en]
-  full_name = I18n.transliterate("#{first_name} #{last_name}").alnum
+  full_name = "#{first_name} #{last_name}"
   results = page.css("#links .results_links_deep")
   good_matches = []
   okay_matches = []
