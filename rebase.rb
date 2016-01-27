@@ -40,12 +40,12 @@ def main(recruiter)
         lookup_row["Email"] == email
       end
       if master_row
-        row["First Name"] = master_row["First Name"]
-        row["Last Name"] = master_row["Last Name"]
-        row["Employer Organization Name 1"] = master_row["Employer Organization Name 1"]
-        row["Employer 1 Title"] = master_row["Employer 1 Title"]
+        row["First Name"] = master_row["First Name"].encode('utf-8', 'ISO-8859-1') if master_row["First Name"]
+        row["Last Name"] = master_row["Last Name"].encode('utf-8', 'ISO-8859-1') if master_row["Last Name"]
+        row["Employer Organization Name 1"] = master_row["Employer Organization Name 1"].encode('utf-8', 'ISO-8859-1') if master_row["Employer Organization Name 1"]
+        row["Employer 1 Title"] = master_row["Employer 1 Title"].encode('utf-8', 'ISO-8859-1') if master_row["Employer 1 Title"]
         append_to_csv(success_log, row)
-        puts "Match found"
+        #puts "Match found"
       else
         append_to_csv(fail_log, row)
         puts '############## NO MATCH FOUND ##############'
@@ -73,7 +73,7 @@ def create_files(headers, fail_log, success_log)
 end
 
 def append_to_csv(file, row)
-  f = CSV.open(file, "a+", headers: row.headers, encoding: 'ISO-8859-1')
+  f = CSV.open(file, "a+", headers: row.headers)
   f << row
   f.close
 end
