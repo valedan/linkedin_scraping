@@ -6,7 +6,7 @@ require 'i18n'
 
 class String
   def alnum
-    return self.gsub(/[^\p{Alnum}\p{Space}-]/u, '')
+    return self.gsub(/[^\p{Alnum}\p{Space}-]/u, ' ')
   end
 end
 
@@ -22,8 +22,8 @@ def main
   recruiter = 'SeanMurphy'
 
   output_dir = "./../LIN#{recruiter}"
-  fail_log = "./../LIN#{recruiter}/ddg_fail_log4.csv"
-  success_log = "./../LIN#{recruiter}/ddg_success_log4.csv"
+  fail_log = "./../LIN#{recruiter}/ddg_fail_log3.csv"
+  success_log = "./../LIN#{recruiter}/ddg_success_log3.csv"
   create_files(recruiter, fail_log, success_log)
   input_csv = "#{output_dir}/ddg_fail_log.csv"
   total = %x(wc -l "#{input_csv}").split[0].to_i
@@ -40,11 +40,12 @@ def main
       if count.between?(start, finish)
         puts "Time taken: #{Time.now - previous_time}"
         previous_time = Time.now
-        delay(9.5, 1.0)
+        delay(7.5, 1.0)
         puts "\n"
         puts "Input Row #{count}/#{total}"
         agent = Mechanize.new
         agent.user_agent = $user_agents["mozilla_windows".to_sym]
+        #need to sanitize data before constructing query
         query = create_query(row)
         query.gsub!(/\?/, '')
         puts query
@@ -191,12 +192,12 @@ def name_check(lin_name, csv_name)
   puts lin_name
   puts csv_name
   csv_array = csv_name.downcase.split(" ")
-  p csv_array
+  #p csv_array
   lin_array = lin_name.downcase.split(" ")
-  p lin_array
+  #p lin_array
   match = true
   csv_array.each do |chunk|
-    puts chunk
+    #puts chunk
     unless lin_array.include?(chunk)
       match = false
     end
