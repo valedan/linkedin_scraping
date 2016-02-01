@@ -12,7 +12,7 @@ require 'fileutils'
 #    'NeasaWhite', 'NiamhBlack', 'SarahKelly', 'SeanMurphy',
 #    'SheilaMcNeice', 'Ruby', 'SheilaDempsey', 'SheilaMcGrath',
 #    'YuChun']
-recruiters = ['SeanMurphy']
+recruiters = ['MaryBerry']
 
 
 def main(recruiter)
@@ -20,12 +20,12 @@ def main(recruiter)
 
 
   output_dir = "./../LIN#{recruiter}"
-  fail_log = "./../LIN#{recruiter}/rebase_fail.csv"
-  success_log = "./../LIN#{recruiter}/rebase_success.csv"
+  fail_log = "./../LIN#{recruiter}/rebase_fail2.csv"
+  success_log = "./../LIN#{recruiter}/rebase_success2.csv"
   data_csv = "#{output_dir}/fail_log.csv"
   lookup_csv = "./../jan27_salesforce_lin_update2.csv"
   data_table = CSV.read(data_csv, headers: true)
-  lookup_table = CSV.read(lookup_csv, headers: true, encoding: 'ISO-8859-1')
+  lookup_table = CSV.read(lookup_csv, headers: true, encoding: 'windows-1252')
   headers = data_table.headers
   create_files(headers, fail_log, success_log)
 
@@ -40,10 +40,10 @@ def main(recruiter)
         lookup_row["Email"] == email
       end
       if master_row
-        row["First Name"] = master_row["First Name"].encode('utf-8', 'ISO-8859-1') if master_row["First Name"]
-        row["Last Name"] = master_row["Last Name"].encode('utf-8', 'ISO-8859-1') if master_row["Last Name"]
-        row["Employer Organization Name 1"] = master_row["Employer Organization Name 1"].encode('utf-8', 'ISO-8859-1') if master_row["Employer Organization Name 1"]
-        row["Employer 1 Title"] = master_row["Employer 1 Title"].encode('utf-8', 'ISO-8859-1') if master_row["Employer 1 Title"]
+        row["First Name"] = master_row["First Name"].encode('utf-8', 'windows-1252') if master_row["First Name"]
+        row["Last Name"] = master_row["Last Name"].encode('utf-8', 'windows-1252') if master_row["Last Name"]
+        row["Employer Organization Name 1"] = master_row["Employer Organization Name 1"].encode('utf-8', 'windows-1252') if master_row["Employer Organization Name 1"]
+        row["Employer 1 Title"] = master_row["Employer 1 Title"].encode('utf-8', 'windows-1252') if master_row["Employer 1 Title"]
         append_to_csv(success_log, row)
         #puts "Match found"
       else
