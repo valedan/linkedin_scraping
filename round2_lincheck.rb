@@ -67,6 +67,7 @@ def main
   count = 0
   start = 0
   finish = 10000
+  I18n.available_locales = [:en]
   previous_time = Time.now
 
   CSV.foreach(input_csv, headers: true) do |row|
@@ -163,24 +164,35 @@ end
 
 ### rewrite to include new sanitization logic ###
 def validate_profile(page, first_name, last_name, employer, title)
-  full_name = "#{first_name} #{last_name}"
-  profile_name = page.css("#name")
+  full_name = I18n.transliterate("#{first_name} #{last_name}").alnum
+  profile_name = I18n.transliterate(page.css("#name")).alnum
   puts '############# ACCESS GRANTED ############'
   puts profile_name.text
   positions = page.css("#experience .positions .position")
   match = false
+  unless split_string_comp(profile_name, full_name) == true
+    return match
+  end
   positions.each do |position|
-    profile_title = position.at_css("header .item-title a").text
-    #puts "csv title: #{title}"
-
-    puts "Profile Title: #{profile_title}"
-    profile_employer = position.at_css("header .item-subtitle").text
-    #puts "csv emp: #{employer}"
-    puts "Profile Employer: #{profile_employer}"
-    if profile_title.downcase.include?(title.downcase) && profile_employer.downcase.include?(employer.downcase)
+    profile_title = I18n.transliterate(position.at_css("header .item-title a").text).alnum
+    profile_employer = I18n.transliterate(position.at_css("header .item-subtitle").text).alnum
+    title = I18n.transliterate(title).alnum
+    employer = I18n.transliterate(employer).alnum
+    if split_string_comp(profile_title, title) && split_string_comp(profile_employer, employer)
       match = true
     end
+  end
+  return match
+end
 
+def split_string_comp(observed_string, canon_string)
+  canon_array = canon_string.downcase.split(" ")
+  observed_array = observed_string.downcase.split(" ")
+  match = true
+  canon_array.each do |chunk|
+    unless observed_array.include?(chunk)
+      match = false
+    end
   end
   return match
 end
