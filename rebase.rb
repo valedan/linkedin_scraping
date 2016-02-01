@@ -12,8 +12,8 @@ require 'fileutils'
 #    'NeasaWhite', 'NiamhBlack', 'MaryBerry', 'SarahKelly', 'SeanMurphy',
 #    'SheilaMcNeice', 'Ruby', 'SheilaDempsey', 'SheilaMcGrath',
 #    'YuChun']
-recruiters = ['SeanMurphy', 'SheilaMcNeice', 'Ruby', 'SheilaDempsey', 'SheilaMcGrath',
-'YuChun']
+recruiters = ['Emily', 'JennyDolan']
+
 
 lookup_csv = "./../jan27_salesforce_lin_update2.csv"
 $lookup_table = CSV.read(lookup_csv, headers: true, encoding: 'windows-1252')
@@ -21,7 +21,7 @@ $lookup_table = CSV.read(lookup_csv, headers: true, encoding: 'windows-1252')
 
 
 def main(recruiter)
-  puts "Recruiter: #{recruiter}"
+
 
 
   output_dir = "./../LIN#{recruiter}"
@@ -31,6 +31,9 @@ def main(recruiter)
   data_table = CSV.read(data_csv, headers: true)
   headers = data_table.headers
   create_files(headers, fail_log, success_log)
+  total = %x(wc -l "#{data_csv}").split[0].to_i
+  puts "Recruiter: #{recruiter} -> #{total}"
+
 
   count = 0
 
@@ -40,7 +43,7 @@ def main(recruiter)
       puts "#{recruiter}: #{count}"
       email = row["Email"]
       master_row = $lookup_table.find do |lookup_row|
-        lookup_row["Email"] == email
+        lookup_row["Email"].downcase == email.downcase if lookup_row["Email"] && email
       end
       if master_row
         row["First Name"] = master_row["First Name"].encode('utf-8', 'windows-1252') if master_row["First Name"]
@@ -54,8 +57,8 @@ def main(recruiter)
         puts '############## NO MATCH FOUND ##############'
       end
     rescue Exception => msg
-        append_to_csv(fail_log, row)
-        puts msg
+      append_to_csv(fail_log, row)
+      puts msg
     end
   end
 end
