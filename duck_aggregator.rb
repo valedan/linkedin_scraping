@@ -14,23 +14,23 @@ $user_agents = {mozilla_windows: "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) G
 
 $headers = ["First Name",	"Last Name",	"Employer Organization Name 1",
   	        "Employer 1 Title",	"Email",	"CV TR",	"Candidate Source",	"Candidate ID",
-    	      "Resume Last Updated",	"Account Name",	"Search Query", "Log", "Urls"]
+    	      "Resume Last Updated",	"Account Name",	"Search Query", "Log", "Url"]
 
 puts "\n\n\n\n\n\n\nDUCK SCRAPER STARTING\n\n\n\n\n\n"
 
 def main
-  recruiter = 'SeanMurphy'
+  recruiter = 'MaryBerry'
 
   output_dir = "./../LIN#{recruiter}"
-  fail_log = "./../LIN#{recruiter}/ddg_fail_log5.csv"
-  success_log = "./../LIN#{recruiter}/ddg_success_log5.csv"
+  fail_log = "./../LIN#{recruiter}/ddg_fail_log_rebased2.csv"
+  success_log = "./../LIN#{recruiter}/ddg_success_log_rebased2.csv"
   create_files(recruiter, fail_log, success_log)
-  input_csv = "#{output_dir}/ddg_fail_log.csv"
+  input_csv = "#{output_dir}/rebase_success2.csv"
   total = %x(wc -l "#{input_csv}").split[0].to_i
   puts "Length of input: #{total} rows.\n"
   count = 0
   start = 0
-  finish = 10000
+  finish = 50
   previous_time = Time.now
 
   CSV.foreach(input_csv, headers: true) do |row|
@@ -40,7 +40,7 @@ def main
       if count.between?(start, finish)
         puts "Time taken: #{Time.now - previous_time}"
         previous_time = Time.now
-        delay(7.5, 1.0)
+        delay(3.5, 1.0)
         puts "\n"
         puts "Input Row #{count}/#{total}"
         agent = Mechanize.new
@@ -51,6 +51,8 @@ def main
         row["Last Name"].gsub!(row["Email"], ' ')
         row["First Name"] = I18n.transliterate(row["First Name"]).alnum
         row["Last Name"]  = I18n.transliterate(row["Last Name"]).alnum
+        row["Employer Organization Name 1"]  = I18n.transliterate(row["Employer Organization Name 1"]).alnum
+        row["Employer 1 Title"]  = I18n.transliterate(row["Employer 1 Title"]).alnum
         query = create_query(row)
         query.gsub!(/\?/, '')
         puts query
@@ -63,8 +65,9 @@ def main
         lin_urls = aggregate_urls(results_page, row["First Name"], row["Last Name"],
                              row["Employer Organization Name 1"], row["Employer 1 Title"])
         if lin_urls.class == Array && lin_urls.length > 0
-          row["Urls"] = lin_urls.join("; ")
-          puts "#{lin_urls.length} results round"
+          row["Url"] = lin_urls.join("; ")
+          row["Log"] = nil
+          puts "#{lin_urls.length} results found"
           append_to_csv(success_log, row)
         elsif lin_urls.class == Array && lin_urls.length == 0
           row["Log"] = "No results found"
@@ -76,10 +79,10 @@ def main
           row["Log"] = "invalid return type from aggregate function"
           append_to_csv(fail_log, row)
         end
-        #puts row["Log"]
+        puts row["Log"]
       elsif count > finish
-        row["Log"] = "Not attempted"
-        append_to_csv(fail_log, row)
+        #row["Log"] = "Not attempted"
+        #append_to_csv(fail_log, row)
         #break
       end
     rescue Exception => msg
@@ -157,15 +160,17 @@ def aggregate_urls(page, first_name, last_name, employer, title)
       short_title = title.split
       short_title = "#{short_title[0]}"
       short_title += " #{short_title[1]}" if short_title[1]
-      short_title = I18n.transliterate(short_title).alnum
     #  puts "short title: #{short_title}"
       short_employer = employer.split
-      short_employer = I18n.transliterate("#{short_employer[0]}").alnum
+      short_employer = "#{short_employer[0]}"
     #  puts "short employer: #{short_employer}"
 
       # if url.include?("/dir/")
       #   valid_url = false
       # end
+      if result.css("a.large").text.include?("profiles | LinkedIn")
+        valid_url = false
+      end
       unless url.include?("linkedin")
         valid_url = false
       end
@@ -174,11 +179,11 @@ def aggregate_urls(page, first_name, last_name, employer, title)
       end
       if name_check(url_text, full_name) && valid_url
         valid_url = "okay"
-        puts "okay match"
+        #puts "okay match"
       end
       if valid_url == "okay" && bio.downcase.include?(short_title.downcase) && bio.downcase.include?(short_employer.downcase)
         valid_url = "good"
-        puts "good match"
+        #puts "good match"
       end
       if valid_url == "good"
         good_matches << url
@@ -193,8 +198,8 @@ def aggregate_urls(page, first_name, last_name, employer, title)
 end
 
 def name_check(lin_name, csv_name)
-  puts lin_name
-  puts csv_name
+  #puts lin_name
+  #puts csv_name
   csv_array = csv_name.downcase.split(" ")
   #p csv_array
   lin_array = lin_name.downcase.split(" ")
@@ -206,7 +211,7 @@ def name_check(lin_name, csv_name)
       match = false
     end
   end
-  puts match
+  #puts match
   return match
 end
 

@@ -2,6 +2,14 @@ require 'rubygems'
 require 'mechanize'
 require 'csv'
 require 'fileutils'
+require 'i18n'
+
+class String
+  def alnum
+    return self.gsub(/[^\p{Alnum}\p{Space}]/u, ' ')
+  end
+end
+
 
 # AlisonSmith - 450/682
 # Emily - 59/177
@@ -42,7 +50,7 @@ $user_agents = {mozilla_windows: "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) G
 
 $headers = ["First Name",	"Last Name",	"Employer Organization Name 1",
   	        "Employer 1 Title",	"Email",	"CV TR",	"Candidate Source",	"Candidate ID",
-    	      "Resume Last Updated",	"Account Name",	"Search Query", "Log", "Urls"]
+    	      "Resume Last Updated",	"Account Name",	"Search Query", "Log", "Url"]
 
 $correct_profile_page = nil
 
@@ -77,7 +85,7 @@ def main
         #agent = create_proxy(agent, $proxies.keys.sample)
         #agent = create_proxy(agent, 'beijing_telco')
         agent.user_agent = $user_agents["mozilla_windows".to_sym]
-        correct_profile = check_urls(row["Urls"], agent, row["First Name"], row["Last Name"],
+        correct_profile = check_urls(row["Url"], agent, row["First Name"], row["Last Name"],
                              row["Employer Organization Name 1"], row["Employer 1 Title"])
         if correct_profile.start_with?("http")
           puts "MATCH FOUND: #{correct_profile}"
@@ -85,7 +93,7 @@ def main
           output_file = File.new("#{output_dir}/#{id}.html", 'w+')
           output_file.write($correct_profile_page.body)
           output_file.close
-          row["Urls"] = correct_profile
+          row["Url"] = correct_profile
           append_to_csv(success_log, row)
         else
           puts "NO MATCH FOUND"
