@@ -22,15 +22,15 @@ def main
   recruiter = 'MaryBerry'
 
   output_dir = "./../LIN#{recruiter}"
-  fail_log = "./../LIN#{recruiter}/ddg_fail_log_rebased2.csv"
-  success_log = "./../LIN#{recruiter}/ddg_success_log_rebased2.csv"
+  fail_log = "./../LIN#{recruiter}/ddg_fail_log.csv"
+  success_log = "./../LIN#{recruiter}/ddg_success_log.csv"
   create_files(recruiter, fail_log, success_log)
   input_csv = "#{output_dir}/rebase_success2.csv"
   total = %x(wc -l "#{input_csv}").split[0].to_i
   puts "Length of input: #{total} rows.\n"
   count = 0
   start = 0
-  finish = 50
+  finish = 1000
   previous_time = Time.now
 
   CSV.foreach(input_csv, headers: true) do |row|
@@ -143,7 +143,6 @@ def aggregate_urls(page, first_name, last_name, employer, title)
   good_matches = []
   okay_matches = []
   puts "number of results: #{results.length}"
-#  puts "Full Name: #{full_name}"
   if employer.nil? || title.nil?
     return "ERR: Nil field"
   end
@@ -152,22 +151,15 @@ def aggregate_urls(page, first_name, last_name, employer, title)
     if result.at_css("a.large")
       url_text = I18n.transliterate(result.css("a.large").text).alnum
       url = result.at_css('a.large')['href']
-    #  puts "url text: #{url_text}"
       paragraph = result.css("div.snippet").text
-    #  puts "paragraph: #{paragraph}"
       valid_url = true
       bio = I18n.transliterate("#{paragraph}").alnum
       short_title = title.split
       short_title = "#{short_title[0]}"
       short_title += " #{short_title[1]}" if short_title[1]
-    #  puts "short title: #{short_title}"
       short_employer = employer.split
       short_employer = "#{short_employer[0]}"
-    #  puts "short employer: #{short_employer}"
 
-      # if url.include?("/dir/")
-      #   valid_url = false
-      # end
       if result.css("a.large").text.include?("profiles | LinkedIn")
         valid_url = false
       end
@@ -179,11 +171,9 @@ def aggregate_urls(page, first_name, last_name, employer, title)
       end
       if name_check(url_text, full_name) && valid_url
         valid_url = "okay"
-        #puts "okay match"
       end
       if valid_url == "okay" && bio.downcase.include?(short_title.downcase) && bio.downcase.include?(short_employer.downcase)
         valid_url = "good"
-        #puts "good match"
       end
       if valid_url == "good"
         good_matches << url
@@ -198,20 +188,14 @@ def aggregate_urls(page, first_name, last_name, employer, title)
 end
 
 def name_check(lin_name, csv_name)
-  #puts lin_name
-  #puts csv_name
   csv_array = csv_name.downcase.split(" ")
-  #p csv_array
   lin_array = lin_name.downcase.split(" ")
-  #p lin_array
   match = true
   csv_array.each do |chunk|
-    #puts chunk
     unless lin_array.include?(chunk)
       match = false
     end
   end
-  #puts match
   return match
 end
 

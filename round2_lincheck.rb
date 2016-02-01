@@ -52,8 +52,6 @@ $headers = ["First Name",	"Last Name",	"Employer Organization Name 1",
   	        "Employer 1 Title",	"Email",	"CV TR",	"Candidate Source",	"Candidate ID",
     	      "Resume Last Updated",	"Account Name",	"Search Query", "Log", "Url"]
 
-$correct_profile_page = nil
-
 puts "\n\n\n\n\n\n\nSCRAPER STARTING\n\n\n\n\n\n"
 
 def main
@@ -85,19 +83,19 @@ def main
         #agent = create_proxy(agent, $proxies.keys.sample)
         #agent = create_proxy(agent, 'beijing_telco')
         agent.user_agent = $user_agents["mozilla_windows".to_sym]
-        correct_profile = check_urls(row["Url"], agent, row["First Name"], row["Last Name"],
-                             row["Employer Organization Name 1"], row["Employer 1 Title"])
-        if correct_profile.start_with?("http")
+        correct_profile_url, correct_profile_page = check_urls(row["Url"], agent, row["First Name"], row["Last Name"],
+                                                    row["Employer Organization Name 1"], row["Employer 1 Title"])
+        if correct_profile_url.start_with?("http")
           puts "MATCH FOUND: #{correct_profile}"
           id = row["Candidate ID"]
           output_file = File.new("#{output_dir}/#{id}.html", 'w+')
-          output_file.write($correct_profile_page.body)
+          output_file.write(correct_profile_page.body)
           output_file.close
-          row["Url"] = correct_profile
+          row["Url"] = correct_profile_url
           append_to_csv(success_log, row)
         else
           puts "NO MATCH FOUND"
-          row["Log"] = correct_profile
+          row["Log"] = correct_profile_page
           append_to_csv(fail_log, row)
         end
 
@@ -126,14 +124,13 @@ def check_urls(url_string, agent, first_name, last_name, employer, title)
     delay(5.0, 3.0)
     page = agent.get(url)
     puts "checking #{url}"
-    if validate_profile(page, first_name, last_name, employer, title)
-      $correct_profile_page = page
-      return url
+    if validate_profile(page, first_name, last_name, employer, title) == true
+      return [url, page]
     else
       puts "incorrect profile"
     end
   end
-  return "no matches found"
+  return [nil, "no matches found"]
 end
 
 
@@ -164,6 +161,7 @@ def create_files(dir_name, fail_log, success_log)
   end
 end
 
+### rewrite to include new sanitization logic ###
 def validate_profile(page, first_name, last_name, employer, title)
   full_name = "#{first_name} #{last_name}"
   profile_name = page.css("#name")
