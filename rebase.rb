@@ -8,11 +8,16 @@ require 'csv'
 require 'fileutils'
 # recruiters = ['AlisonSmith', 'Emily', 'JennyDolan', 'JingJing',
 #    'JohnSmith', 'KarenDoyle', 'KarenMcHugh', 'LisaONeill',
-#    'LiWang', 'MariaMurphy', 'MaryBerry', 'MikeBrown', 'MyraKumar',
-#    'NeasaWhite', 'NiamhBlack', 'SarahKelly', 'SeanMurphy',
+#    'LiWang', 'MariaMurphy', 'MikeBrown', 'MyraKumar',
+#    'NeasaWhite', 'NiamhBlack', 'MaryBerry', 'SarahKelly', 'SeanMurphy',
 #    'SheilaMcNeice', 'Ruby', 'SheilaDempsey', 'SheilaMcGrath',
 #    'YuChun']
-recruiters = ['MaryBerry']
+recruiters = ['SeanMurphy', 'SheilaMcNeice', 'Ruby', 'SheilaDempsey', 'SheilaMcGrath',
+'YuChun']
+
+lookup_csv = "./../jan27_salesforce_lin_update2.csv"
+$lookup_table = CSV.read(lookup_csv, headers: true, encoding: 'windows-1252')
+
 
 
 def main(recruiter)
@@ -20,12 +25,10 @@ def main(recruiter)
 
 
   output_dir = "./../LIN#{recruiter}"
-  fail_log = "./../LIN#{recruiter}/rebase_fail2.csv"
-  success_log = "./../LIN#{recruiter}/rebase_success2.csv"
+  fail_log = "./../LIN#{recruiter}/rebase_fail.csv"
+  success_log = "./../LIN#{recruiter}/rebase_success.csv"
   data_csv = "#{output_dir}/fail_log.csv"
-  lookup_csv = "./../jan27_salesforce_lin_update2.csv"
   data_table = CSV.read(data_csv, headers: true)
-  lookup_table = CSV.read(lookup_csv, headers: true, encoding: 'windows-1252')
   headers = data_table.headers
   create_files(headers, fail_log, success_log)
 
@@ -36,7 +39,7 @@ def main(recruiter)
       count += 1
       puts "#{recruiter}: #{count}"
       email = row["Email"]
-      master_row = lookup_table.find do |lookup_row|
+      master_row = $lookup_table.find do |lookup_row|
         lookup_row["Email"] == email
       end
       if master_row
