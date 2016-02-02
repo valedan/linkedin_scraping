@@ -3,6 +3,30 @@ require 'mechanize'
 require 'csv'
 require 'fileutils'
 require 'i18n'
+#
+# AlisonSmith   -
+# Emily         -
+# JennyDolan    -
+# JingJing      -
+# JohnSmith     -
+# KarenDoyle    -
+# KarenMcHugh   -
+# LisaONeill    -
+# LiWang        -
+# MariaMurphy   -
+# MaryBerry     -
+# MikeBrown     -
+# MyraKumar     -
+# NeasaWhite    -
+# NiamhBlack    -
+# SarahKelly    -
+# SeanMurphy    -
+# SheilaMcNeice -
+# Ruby          -
+# SheilaDempsey -
+# SheilaMcGrath -
+# YuChun        -
+# Total         -
 
 class String
   def alnum
@@ -19,18 +43,18 @@ $headers = ["First Name",	"Last Name",	"Employer Organization Name 1",
 puts "\n\n\n\n\n\n\nDUCK SCRAPER STARTING\n\n\n\n\n\n"
 
 def main
-  recruiter = 'MaryBerry'
+  recruiter = 'AlisonSmith'
 
   output_dir = "./../LIN#{recruiter}"
   fail_log = "./../LIN#{recruiter}/ddg_fail_log.csv"
   success_log = "./../LIN#{recruiter}/ddg_success_log.csv"
   create_files(recruiter, fail_log, success_log)
-  input_csv = "#{output_dir}/rebase_success2.csv"
+  input_csv = "#{output_dir}/rebase_success.csv"
   total = %x(wc -l "#{input_csv}").split[0].to_i
   puts "Length of input: #{total} rows.\n"
   count = 0
   start = 0
-  finish = 1000
+  finish = 10000
   previous_time = Time.now
 
   CSV.foreach(input_csv, headers: true) do |row|
@@ -40,7 +64,7 @@ def main
       if count.between?(start, finish)
         puts "Time taken: #{Time.now - previous_time}"
         previous_time = Time.now
-        delay(3.5, 1.0)
+        delay(4.5, 1.0)
         puts "\n"
         puts "Input Row #{count}/#{total}"
         agent = Mechanize.new

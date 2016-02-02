@@ -12,7 +12,7 @@ require 'fileutils'
 #    'NeasaWhite', 'NiamhBlack', 'MaryBerry', 'SarahKelly', 'SeanMurphy',
 #    'SheilaMcNeice', 'Ruby', 'SheilaDempsey', 'SheilaMcGrath',
 #    'YuChun']
-recruiters = ['Emily', 'JennyDolan']
+recruiters = ['SheilaMcNeice', 'Ruby', 'SheilaDempsey', 'SheilaMcGrath', 'YuChun']
 
 
 lookup_csv = "./../jan27_salesforce_lin_update2.csv"

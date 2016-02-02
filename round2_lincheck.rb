@@ -9,31 +9,30 @@ class String
     return self.gsub(/[^\p{Alnum}\p{Space}]/u, ' ')
   end
 end
-
-
-# AlisonSmith - 450/682
-# Emily - 59/177
-# JennyDolan - 1167/2459
-# JingJing - 1093/2540
-# JohnSmith - 166/321
-# KarenDoyle - 122/271
-# KarenMcHugh - 1055/2549
-# LisaONeill - 450/670
-# LiWang - 23/37
-# MariaMurphy - 1039/2197
-# MaryBerry - 379/700
-# MikeBrown - 84/109
-# MyraKumar - 90/198
-# NeasaWhite - 1532/3226
-# NiamhBlack - 240/470
-# SarahKelly - 593/958
-# SeanMurphy - 1096/2311
-# SheilaMcNeice - 2112/4367
-# Ruby - 0/1322
-# SheilaDempsey - 54/119
-# SheilaMcGrath - 151/388
-# YuChun - 0/178
-# Total - 10327
+#
+# AlisonSmith   -
+# Emily         -
+# JennyDolan    -
+# JingJing      -
+# JohnSmith     -
+# KarenDoyle    -
+# KarenMcHugh   -
+# LisaONeill    -
+# LiWang        -
+# MariaMurphy   -
+# MaryBerry     -
+# MikeBrown     -
+# MyraKumar     -
+# NeasaWhite    -
+# NiamhBlack    -
+# SarahKelly    -
+# SeanMurphy    -
+# SheilaMcNeice -
+# Ruby          -
+# SheilaDempsey -
+# SheilaMcGrath -
+# YuChun        -
+# Total         -
 
 
 
@@ -55,17 +54,17 @@ $headers = ["First Name",	"Last Name",	"Employer Organization Name 1",
 puts "\n\n\n\n\n\n\nSCRAPER STARTING\n\n\n\n\n\n"
 
 def main
-  recruiter = 'MaryBerry'
+  recruiter = 'MariaMurphy'
 
   output_dir = "./../LIN#{recruiter}/round2"
-  fail_log = "#{output_dir}/fail_log.csv"
+  fail_log = "#{output_dir}/fail_log2.csv"
   success_log = "#{output_dir}/success_log.csv"
   create_files(output_dir, fail_log, success_log)
   input_csv = "./../LIN#{recruiter}/ddg_success_log.csv"
-  total = %x(wc -l "#{input_csv}").split[0].to_i
+  total = %x(wc -l "#{input_csv}").split[0].to_i - 1
   puts "Length of input: #{total} rows.\n"
   count = 0
-  start = 0
+  start = 1055
   finish = 10000
   I18n.available_locales = [:en]
   previous_time = Time.now
@@ -77,7 +76,7 @@ def main
       if count.between?(start, finish)
         puts "Time taken: #{Time.now - previous_time}"
         previous_time = Time.now
-        delay(3.5, 1.0)
+        #delay(3.5, 1.0)
         puts "\n"
         puts "Input Row #{count}/#{total}"
         agent = Mechanize.new
@@ -87,7 +86,7 @@ def main
         correct_profile_url, correct_profile_page = check_urls(row["Url"], agent, row["First Name"], row["Last Name"],
                                                     row["Employer Organization Name 1"], row["Employer 1 Title"])
         if correct_profile_url.start_with?("http")
-          puts "MATCH FOUND: #{correct_profile}"
+          puts "MATCH FOUND: #{correct_profile_url}"
           id = row["Candidate ID"]
           output_file = File.new("#{output_dir}/#{id}.html", 'w+')
           output_file.write(correct_profile_page.body)
@@ -122,16 +121,26 @@ end
 def check_urls(url_string, agent, first_name, last_name, employer, title)
   urls = url_string.split("; ")
   urls.each do |url|
-    delay(5.0, 3.0)
-    page = agent.get(url)
-    puts "checking #{url}"
-    if validate_profile(page, first_name, last_name, employer, title) == true
-      return [url, page]
-    else
-      puts "incorrect profile"
+    begin
+      delay(8.0, 3.0)
+      page = agent.get(url)
+      puts "checking #{url}"
+      if validate_profile(page, first_name, last_name, employer, title) == true
+        return [url, page]
+      else
+        puts "incorrect profile"
+      end
+    rescue Exception => e
+      puts "problem fetching/validating page"
+      puts e
+      if e.to_s.start_with?("999")
+        puts '############# ACCESS DENIED ############'
+        puts "long sleep"
+        delay(900, 1.0)
+      end
     end
   end
-  return [nil, "no matches found"]
+  return ["no matches found", "no matches found"]
 end
 
 
@@ -165,21 +174,23 @@ end
 ### rewrite to include new sanitization logic ###
 def validate_profile(page, first_name, last_name, employer, title)
   full_name = I18n.transliterate("#{first_name} #{last_name}").alnum
-  profile_name = I18n.transliterate(page.css("#name")).alnum
+  profile_name = I18n.transliterate(page.at_css("#name").text).alnum
   puts '############# ACCESS GRANTED ############'
-  puts profile_name.text
+  puts profile_name
   positions = page.css("#experience .positions .position")
   match = false
   unless split_string_comp(profile_name, full_name) == true
     return match
   end
   positions.each do |position|
-    profile_title = I18n.transliterate(position.at_css("header .item-title a").text).alnum
-    profile_employer = I18n.transliterate(position.at_css("header .item-subtitle").text).alnum
-    title = I18n.transliterate(title).alnum
-    employer = I18n.transliterate(employer).alnum
-    if split_string_comp(profile_title, title) && split_string_comp(profile_employer, employer)
-      match = true
+    if position.at_css("header .item-title a") && position.at_css("header .item-subtitle")
+      profile_title = I18n.transliterate(position.at_css("header .item-title a").text).alnum
+      profile_employer = I18n.transliterate(position.at_css("header .item-subtitle").text).alnum
+      title = I18n.transliterate(title).alnum
+      employer = I18n.transliterate(employer).alnum
+      if split_string_comp(profile_title, title) && split_string_comp(profile_employer, employer)
+        match = true
+      end
     end
   end
   return match
