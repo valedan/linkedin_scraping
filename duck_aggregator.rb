@@ -43,14 +43,15 @@ $headers = ["First Name",	"Last Name",	"Employer Organization Name 1",
 puts "\n\n\n\n\n\n\nDUCK SCRAPER STARTING\n\n\n\n\n\n"
 
 def main
-  recruiter = 'AlisonSmith'
+  recruiter = 'SheilaMcGrath'
+  puts recruiter
 
   output_dir = "./../LIN#{recruiter}"
   fail_log = "./../LIN#{recruiter}/ddg_fail_log.csv"
   success_log = "./../LIN#{recruiter}/ddg_success_log.csv"
   create_files(recruiter, fail_log, success_log)
   input_csv = "#{output_dir}/rebase_success.csv"
-  total = %x(wc -l "#{input_csv}").split[0].to_i
+  total = %x(wc -l "#{input_csv}").split[0].to_i - 1
   puts "Length of input: #{total} rows.\n"
   count = 0
   start = 0
@@ -64,7 +65,7 @@ def main
       if count.between?(start, finish)
         puts "Time taken: #{Time.now - previous_time}"
         previous_time = Time.now
-        delay(4.5, 1.0)
+        delay(5.5, 1.0)
         puts "\n"
         puts "Input Row #{count}/#{total}"
         agent = Mechanize.new

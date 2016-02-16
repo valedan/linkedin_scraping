@@ -44,6 +44,7 @@ $proxies = {beijing_telco: {ip: '121.69.28.86', port: '8118'},
             }
 
 $user_agents = {mozilla_windows: "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1",
+                real: "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:43.0) Gecko/20100101 Firefox/43.0",
                 test_1: "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3",
                 google: "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"}
 
@@ -52,19 +53,20 @@ $headers = ["First Name",	"Last Name",	"Employer Organization Name 1",
     	      "Resume Last Updated",	"Account Name",	"Search Query", "Log", "Url"]
 
 puts "\n\n\n\n\n\n\nSCRAPER STARTING\n\n\n\n\n\n"
-
+### re-do MariaMurphy from r2 fail log - validate uniqueness before parsing! ###
 def main
-  recruiter = 'MariaMurphy'
-
+  recruiter = 'SheilaMcNeice'
   output_dir = "./../LIN#{recruiter}/round2"
-  fail_log = "#{output_dir}/fail_log2.csv"
+  fail_log = "#{output_dir}/fail_log.csv"
   success_log = "#{output_dir}/success_log.csv"
   create_files(output_dir, fail_log, success_log)
   input_csv = "./../LIN#{recruiter}/ddg_success_log.csv"
   total = %x(wc -l "#{input_csv}").split[0].to_i - 1
   puts "Length of input: #{total} rows.\n"
   count = 0
-  start = 1055
+
+  start = 125
+
   finish = 10000
   I18n.available_locales = [:en]
   previous_time = Time.now
@@ -82,7 +84,7 @@ def main
         agent = Mechanize.new
         #agent = create_proxy(agent, $proxies.keys.sample)
         #agent = create_proxy(agent, 'beijing_telco')
-        agent.user_agent = $user_agents["mozilla_windows".to_sym]
+        agent.user_agent = $user_agents["real".to_sym]
         correct_profile_url, correct_profile_page = check_urls(row["Url"], agent, row["First Name"], row["Last Name"],
                                                     row["Employer Organization Name 1"], row["Employer 1 Title"])
         if correct_profile_url.start_with?("http")
@@ -122,7 +124,7 @@ def check_urls(url_string, agent, first_name, last_name, employer, title)
   urls = url_string.split("; ")
   urls.each do |url|
     begin
-      delay(8.0, 3.0)
+      delay(55.0, 5.0)
       page = agent.get(url)
       puts "checking #{url}"
       if validate_profile(page, first_name, last_name, employer, title) == true
