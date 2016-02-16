@@ -73,12 +73,12 @@ def main
 
   CSV.foreach(input_csv, headers: true) do |row|
     count += 1
+    tries = 3
     begin
 
       if count.between?(start, finish)
         puts "Time taken: #{Time.now - previous_time}"
         previous_time = Time.now
-        #delay(3.5, 1.0)
         puts "\n"
         puts "Input Row #{count}/#{total}"
         agent = Mechanize.new
@@ -101,20 +101,25 @@ def main
           append_to_csv(fail_log, row)
         end
 
-      elsif count > finish
-        #row["Log"] = "Not attempted"
-        #append_to_csv(fail_log, row)
-        #break
-      end
     rescue Exception => msg
-      row["Log"] = msg
-      append_to_csv(fail_log, row)
-      if msg.to_s.start_with?("999")
-        puts '############# ACCESS DENIED ############'
-        puts "long sleep"
-        delay(900, 1.0)
+      tries -= 1
+      if tries > 0
+        puts "Error"
+        puts msg
+        puts 'sleeping...'
+        delay(60, 1.0)
+        puts 'retrying'
+        retry
+      else
+        row["Log"] = msg
+        append_to_csv(fail_log, row)
+        if msg.to_s.start_with?("999")
+          puts '############# ACCESS DENIED ############'
+          puts '################ ABORTING ##############'
+        end
+        puts msg
+        abort
       end
-      puts msg
     end
   end
   puts "end of main"
