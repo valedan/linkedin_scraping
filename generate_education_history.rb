@@ -37,7 +37,7 @@ end
 # Salaried ts2__Salaried__c	JS2	Checkbox
 # Start Date ts2__Employment_Start_Date__c	JS2	Date
 
-$headers = ["Contact", "Employer Name", "Job Title", "Start Date", "End Date", "Location"]
+$headers = ["Contact", "School Name", "Major", "Graduation Date"]
 
 # recruiters = ['AlisonSmith', 'Emily', 'JennyDolan', 'JingJing',
 #    'JohnSmith', 'KarenDoyle', 'KarenMcHugh', 'LisaONeill',
