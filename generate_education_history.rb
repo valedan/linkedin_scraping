@@ -14,6 +14,9 @@ class NilClass
   def css(options = {})
     return nil
   end
+  def gsub(a, b)
+    return nil
+  end
   def at_css(options = {})
     return nil
   end
@@ -37,7 +40,7 @@ end
 # Salaried ts2__Salaried__c	JS2	Checkbox
 # Start Date ts2__Employment_Start_Date__c	JS2	Date
 
-$headers = ["Contact", "School Name", "Major", "Graduation Date"]
+$headers = ["Contact", "School Name", "Major", "Graduation Year"]
 
 # recruiters = ['AlisonSmith', 'Emily', 'JennyDolan', 'JingJing',
 #    'JohnSmith', 'KarenDoyle', 'KarenMcHugh', 'LisaONeill',
@@ -46,17 +49,18 @@ $headers = ["Contact", "School Name", "Major", "Graduation Date"]
 #    'SheilaMcNeice', 'Ruby', 'SheilaDempsey', 'SheilaMcGrath',
 #    'YuChun']
 
-recruiters = ['MariaMurphy', 'SeanMurphy', 'KarenMcHugh', 'JennyDolan', 'JohnSmith']
+#recruiters = ['MariaMurphy', 'SeanMurphy', 'KarenMcHugh', 'JennyDolan', 'JohnSmith']
+
+recruiters = ['SheilaMcNeice']
 
 def main(recruiter)
   puts "Recruiter: #{recruiter}"
 
-  target_dir = "./../LIN#{recruiter}/round2"
-  parsed_dir = "./../LIN#{recruiter}/round2/parsed"
-  parsed2_dir = "./../LIN#{recruiter}/round2/parsed2"
-  FileUtils.mkdir(parsed2_dir) unless Dir.exist?(parsed2_dir)
-  output_path = "./../LIN#{recruiter}/round2/LIN#{recruiter}_employment_history_round2.csv"
-  success_log = "./../LIN#{recruiter}/round2/LIN#{recruiter}.csv"
+  target_dir = "./../LIN#{recruiter}"
+  parsed_dir = "./../LIN#{recruiter}/parsed"
+  parsed2_dir = "./../LIN#{recruiter}/parsed2"
+  output_path = "./../LIN#{recruiter}/LIN#{recruiter}_education_history2.csv"
+  success_log = "./../LIN#{recruiter}/id_lookup_success.csv"
   create_files(recruiter, output_path)
   count = 0
   output = CSV.open(output_path, "a+", headers: true)
@@ -86,37 +90,22 @@ def parse_html(file, contact_id)
   page = Nokogiri::HTML(File.read(file))
   rows = []
 
-  positions = page.css("#experience .positions .position")
+  schools = page.css("#education .schools .school")
 
-  positions.each do |position|
+  schools.each do |school|
     row = CSV::Row.new($headers, [], header_row: false)
     row["Contact"] = contact_id
-
-    row["Job Title"] = position.at_css(".item-title").text.slice(0, 74)
-    row["Employer Name"] = position.at_css(".item-subtitle").text.slice(0, 149)
-    jstart = position.css(".date-range time")[0]
-    jend = position.css(".date-range time")[1]
-    row["Start Date"] = format_date(jstart.text)
-    row["End Date"] = format_date(jend.text)
-    row["Location"] = position.at_css(".location").text.slice(0, 254)
+    row["School Name"] = school.at_css(".item-title").text.slice(0, 149)
+    row["Major"] = school.at_css(".item-subtitle").text.slice(0, 254)
+    dstart = school.css(".date-range time")[0]
+    dend = school.css(".date-range time")[1]
+    if dend
+      row["Graduation Year"] = dend.text.gsub(/\D/, '').slice(0, 74)
+    else
+      row["Graduation Year"] = dstart.text.gsub(/\D/, '').slice(0, 74)
+    end
     rows << row
   end
-
-
-  # text_resume += "\n\nEDUCATION\n" if schools.length > 0
-  # schools.each do |school|
-  #   stitle = school.at_css(".item-title")
-  #   sdegree = school.at_css(".item-subtitle")
-  #   sdates = school.at_css(".date-range")
-  #   sdesc = school.at_css(".description")
-  #   sdesc.css('br').each{|br| br.replace "\n"} if sdesc
-  #   text_resume += "\n#{stitle.text}\n" if stitle
-  #   text_resume += " - #{sdegree.text}\n" if sdegree.text.length > 0
-  #   text_resume += "#{sdates.text}\n" if sdates
-  #   text_resume += "#{sdesc.text}\n" if sdesc
-  # end
-
-
   return rows
 end
 
