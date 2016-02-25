@@ -1,12 +1,13 @@
 require 'rubygems'
 require 'selenium-webdriver'
-require 'headless'
+# require 'headless'
 
 $proxies = {beijing_telco: {ip: '121.69.28.86', port: '8118'},
             us_hiw: {ip: '165.2.139.51', port: '80'},
             can_sas: {ip: '198.169.246.30', port: '80'},
             spain_tel: {ip: '195.140.157.138', port: '443'},
-            china_mobile: {ip: '117.136.234.12', port: '80'}
+            china_mobile: {ip: '117.136.234.12', port: '80'},
+            limeproxy_test: {ip: '190.112.203.13', port: '1212'}
             }
 
 def create_proxy(proxy_name)
@@ -16,7 +17,7 @@ def create_proxy(proxy_name)
 end
 
 profile = Selenium::WebDriver::Firefox::Profile.new
-proxy = create_proxy("can_sas")
+proxy = create_proxy("limeproxy_test")
 profile.proxy = proxy
 mozilla_windows_ua = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1"
 profile["general.useragent.override"] = mozilla_windows_ua
@@ -32,7 +33,7 @@ driver = Selenium::WebDriver.for :firefox, :profile => profile
 driver.manage.window.resize_to(1300, 900)
 driver.manage.timeouts.implicit_wait = 20
 #10.times do
-   driver.get "#{jobcontax_url}/contact"
+   driver.get "whatsmyip_url"
 #end
 
 puts "Page title is #{driver.title}"

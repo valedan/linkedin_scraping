@@ -9,44 +9,26 @@ class String
     return self.gsub(/[^\p{Alnum}\p{Space}]/u, ' ')
   end
 end
-#
-# AlisonSmith   -
-# Emily         -
-# JennyDolan    -
-# JingJing      -
-# JohnSmith     -
-# KarenDoyle    -
-# KarenMcHugh   -
-# LisaONeill    -
-# LiWang        -
-# MariaMurphy   -
-# MaryBerry     -
-# MikeBrown     -
-# MyraKumar     -
-# NeasaWhite    -
-# NiamhBlack    -
-# SarahKelly    -
-# SeanMurphy    -
-# SheilaMcNeice -
-# Ruby          -
-# SheilaDempsey -
-# SheilaMcGrath -
-# YuChun        -
-# Total         -
 
 
 
-$proxies = {beijing_telco: {ip: '121.69.28.86', port: '8118'},
-            us_hiw: {ip: '165.2.139.51', port: '80'},
-            can_sas: {ip: '198.169.246.30', port: '80'},
-            spain_tel: {ip: '195.140.157.138', port: '443'},
-            china_mobile: {ip: '117.136.234.12', port: '80'}
-            }
+$proxies = [
+            '89.36.66.229',
+            '91.235.142.232',
+            '91.235.142.173',
+            '91.235.142.146',
+            '89.36.66.136'
+            ]
 
-$user_agents = {mozilla_windows: "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1",
-                real: "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:43.0) Gecko/20100101 Firefox/43.0",
-                test_1: "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3",
-                google: "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"}
+
+$user_agents = ['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36',
+                'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A',
+               'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1'
+            ]
+
+$index = 4
 
 $headers = ["First Name",	"Last Name",	"Employer Organization Name 1",
   	        "Employer 1 Title",	"Email",	"CV TR",	"Candidate Source",	"Candidate ID",
@@ -54,8 +36,10 @@ $headers = ["First Name",	"Last Name",	"Employer Organization Name 1",
 
 puts "\n\n\n\n\n\n\nSCRAPER STARTING\n\n\n\n\n\n"
 ### re-do MariaMurphy from r2 fail log - validate uniqueness before parsing! ###
-def main
-  recruiter = 'SheilaMcNeice'
+#recruiters = ['MaryBerry', 'NiamhBlack', 'LisaONeill', 'AlisonSmith', 'SheilaMcGrath']
+def main#(recruiter)
+  #puts recruiter
+  recruiter = 'YuChun'
   output_dir = "./../LIN#{recruiter}/round2"
   fail_log = "#{output_dir}/fail_log.csv"
   success_log = "#{output_dir}/success_log.csv"
@@ -64,8 +48,7 @@ def main
   total = %x(wc -l "#{input_csv}").split[0].to_i - 1
   puts "Length of input: #{total} rows.\n"
   count = 0
-
-  start = 125
+  start = 0
 
   finish = 10000
   I18n.available_locales = [:en]
@@ -73,7 +56,7 @@ def main
 
   CSV.foreach(input_csv, headers: true) do |row|
     count += 1
-    tries = 3
+
     begin
 
       if count.between?(start, finish)
@@ -81,11 +64,9 @@ def main
         previous_time = Time.now
         puts "\n"
         puts "Input Row #{count}/#{total}"
-        agent = Mechanize.new
-        #agent = create_proxy(agent, $proxies.keys.sample)
-        #agent = create_proxy(agent, 'beijing_telco')
-        agent.user_agent = $user_agents["real".to_sym]
-        correct_profile_url, correct_profile_page = check_urls(row["Url"], agent, row["First Name"], row["Last Name"],
+
+
+        correct_profile_url, correct_profile_page = check_urls(row["Url"], row["First Name"], row["Last Name"],
                                                     row["Employer Organization Name 1"], row["Employer 1 Title"])
         if correct_profile_url.start_with?("http")
           puts "MATCH FOUND: #{correct_profile_url}"
@@ -100,23 +81,14 @@ def main
           row["Log"] = correct_profile_page
           append_to_csv(fail_log, row)
         end
+      end
 
     rescue Exception => msg
-      tries -= 1
-      if tries > 0
-        puts "Error"
-        puts msg
-        puts 'sleeping...'
-        delay(60, 1.0)
-        puts 'retrying'
-        retry
-      else
-        row["Log"] = msg
-        append_to_csv(fail_log, row)
-        if msg.to_s.start_with?("999")
-          puts '############# ACCESS DENIED ############'
-          puts '################ ABORTING ##############'
-        end
+      row["Log"] = msg
+      append_to_csv(fail_log, row)
+      if msg.to_s.start_with?("999")
+        puts '############# ACCESS DENIED ############'
+        puts '################ ABORTING ##############'
         puts msg
         abort
       end
@@ -125,11 +97,24 @@ def main
   puts "end of main"
 end
 
-def check_urls(url_string, agent, first_name, last_name, employer, title)
+def check_urls(url_string, first_name, last_name, employer, title)
   urls = url_string.split("; ")
   urls.each do |url|
+    tries = 5
     begin
-      delay(55.0, 5.0)
+      delay(5.0, 1.0)
+      agent = Mechanize.new
+      if $index == 4
+        $index = 0
+      else
+        $index += 1
+      end
+      agent.set_proxy($proxies[$index], '80')
+      agent.user_agent = $user_agents[$index]
+      puts "IP: #{$proxies[$index]}"
+      puts "UA: #{$user_agents[$index]}"
+
+
       page = agent.get(url)
       puts "checking #{url}"
       if validate_profile(page, first_name, last_name, employer, title) == true
@@ -138,12 +123,23 @@ def check_urls(url_string, agent, first_name, last_name, employer, title)
         puts "incorrect profile"
       end
     rescue Exception => e
-      puts "problem fetching/validating page"
-      puts e
-      if e.to_s.start_with?("999")
+      tries -= 1
+      if tries > 0
+        puts "Error"
+        puts e
+        puts 'sleeping...'
+        delay(5, 1.0)
+        puts 'retrying'
+        retry
+      elsif
+        e.to_s.start_with?("999")
         puts '############# ACCESS DENIED ############'
-        puts "long sleep"
-        delay(900, 1.0)
+        puts '################ ABORTING ##############'
+        puts e
+        abort
+      else
+        puts "Error"
+        puts e
       end
     end
   end
@@ -228,4 +224,7 @@ def create_proxy(agent, proxy_name)
   return agent
 end
 
+# recruiters.each do |recruiter|
+#   main(recruiter)
+# end
 main

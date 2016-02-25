@@ -6,10 +6,10 @@
 
 require 'csv'
 require 'fileutils'
-recruiters = ['AlisonSmith', 'Emily', 'JennyDolan', 'JingJing',
-   'JohnSmith', 'KarenDoyle', 'KarenMcHugh', 'LisaONeill',
-   'LiWang', 'MariaMurphy', 'MaryBerry', 'MikeBrown', 'MyraKumar',
-   'NeasaWhite', 'NiamhBlack', 'SarahKelly', 'SeanMurphy',
+recruiters = ['AlisonSmith', 'Emily','JingJing',
+   'KarenDoyle', 'LisaONeill',
+   'LiWang', 'MaryBerry', 'MikeBrown', 'MyraKumar',
+   'NeasaWhite', 'NiamhBlack', 'SarahKelly',
    'SheilaMcNeice', 'Ruby', 'SheilaDempsey', 'SheilaMcGrath',
    'YuChun']
 
@@ -18,9 +18,9 @@ def main(recruiter)
   puts "Recruiter: #{recruiter}"
 
 
-  output_dir = "./../LIN#{recruiter}"
-  fail_log = "./../LIN#{recruiter}/id_lookup_fail.csv"
-  success_log = "./../LIN#{recruiter}/id_lookup_success.csv"
+  output_dir = "./../LIN#{recruiter}/round2"
+  fail_log = "./../LIN#{recruiter}/round2/id_lookup_fail.csv"
+  success_log = "./../LIN#{recruiter}/round2/id_lookup_success.csv"
   data_csv = "#{output_dir}/LIN#{recruiter}.csv"
   lookup_csv = "./../sf_id_lookup.csv"
   data_table = CSV.read(data_csv, headers: true)

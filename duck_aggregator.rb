@@ -43,7 +43,7 @@ $headers = ["First Name",	"Last Name",	"Employer Organization Name 1",
 puts "\n\n\n\n\n\n\nDUCK SCRAPER STARTING\n\n\n\n\n\n"
 
 def main
-  recruiter = 'SheilaMcGrath'
+  recruiter = 'YuChun'
   puts recruiter
 
   output_dir = "./../LIN#{recruiter}"

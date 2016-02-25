@@ -53,6 +53,17 @@ end
 
 # LIN date possibilities: Experience - Month yyyy (Month optional)
 # =>                      Education - yyyy
+
+
+# recruiters = ['AlisonSmith', 'Emily', 'JingJing',
+#    'KarenDoyle', 'LisaONeill',
+#    'LiWang', 'MikeBrown', 'MyraKumar',
+#    'NeasaWhite', 'NiamhBlack', 'MaryBerry', 'SarahKelly',
+#    'SheilaMcNeice', 'Ruby', 'SheilaDempsey', 'SheilaMcGrath',
+#    'YuChun']
+
+recruiters = ['YuChun']
+
 $headers = ["First Name", "Last Name", "Email", "LinkedIn Profile", "Candidate ID",
             "Candidate Source", "Title", "Contact Country", "Contact LIN Sector",
             "Employer 1 Title", "Employer Organization Name 1", "Employer 1 Start Date",
@@ -67,14 +78,14 @@ $headers = ["First Name", "Last Name", "Email", "LinkedIn Profile", "Candidate I
             "Education School 2", "Education Degree Name 2",
             "Education Degree Date 2", "Text Resume"]
 
-def main
-  recruiter = 'YuChun'
+def main(recruiter)
+  puts recruiter
 
-  target_dir = "./../LIN#{recruiter}"
-  parsed_dir = "./../LIN#{recruiter}/parsed"
+  target_dir = "./../LIN#{recruiter}/round2"
+  parsed_dir = "./../LIN#{recruiter}/round2/parsed"
   FileUtils.mkdir(parsed_dir) unless Dir.exist?(parsed_dir)
-  output_path = "./../LIN#{recruiter}/LIN#{recruiter}.csv"
-  success_log = "./../LIN#{recruiter}/validated_success_log.csv"
+  output_path = "./../LIN#{recruiter}/round2/LIN#{recruiter}.csv"
+  success_log = "./../LIN#{recruiter}/round2/success_log.csv"
   create_files(recruiter, output_path)
   total = %x(wc -l "#{success_log}").split[0].to_i - 1
   puts "Length of input: #{total} rows.\n"
@@ -396,4 +407,6 @@ def create_files(recruiter, output_path)
 
 end
 
-main
+recruiters.each do |recruiter|
+  main(recruiter)
+end
