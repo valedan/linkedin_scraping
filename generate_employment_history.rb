@@ -23,9 +23,11 @@ class NilClass
   def include?(a)
     return false
   end
+
   def gsub!(a, b)
     return nil
   end
+
 end
 
 # Compensation ts2__Compensation__c	JS2	Currency(16, 2)
@@ -42,12 +44,14 @@ end
 
 $headers = ["Contact", "Employer Name", "Job Title", "Start Date", "End Date", "Location"]
 
-recruiters = [ 'Emily','JingJing',
-   'KarenDoyle', 'LisaONeill',
-   'LiWang', 'MaryBerry', 'MikeBrown', 'MyraKumar',
-   'NeasaWhite', 'NiamhBlack', 'SarahKelly',
-   'SheilaMcNeice', 'Ruby', 'SheilaDempsey', 'SheilaMcGrath',
-   'YuChun']
+
+# recruiters = ['AlisonSmith', 'Emily', 'JennyDolan', 'JingJing',
+#    'JohnSmith', 'KarenDoyle', 'KarenMcHugh', 'LisaONeill',
+#    'LiWang', 'MariaMurphy', 'MaryBerry', 'MikeBrown', 'MyraKumar',
+#    'NeasaWhite', 'NiamhBlack', 'SarahKelly', 'SeanMurphy',
+#    'SheilaMcNeice', 'Ruby', 'SheilaDempsey', 'SheilaMcGrath',
+#    'YuChun']
+
 
 
 def main(recruiter)
@@ -57,6 +61,7 @@ def main(recruiter)
   parsed_dir = "./../LIN#{recruiter}/round2/parsed"
   output_path = "./../LIN#{recruiter}/round2/LIN#{recruiter}_employment_history.csv"
   success_log = "./../LIN#{recruiter}/round2/id_lookup_success.csv"
+
   create_files(recruiter, output_path)
   count = 0
   output = CSV.open(output_path, "a+", headers: true)
@@ -72,6 +77,7 @@ def main(recruiter)
       output_rows.each do |output_row|
         output << output_row
       end
+
     else
       puts "File for #{candidate_id} NOT FOUND"
     end
