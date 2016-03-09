@@ -55,7 +55,7 @@ def main
   total = %x(wc -l "#{input_csv}").split[0].to_i - 1
   puts "Length of input: #{total} rows.\n"
   count = 0
-  start = 8522
+  start = 9532
 
   finish = 100000
   I18n.available_locales = [:en]

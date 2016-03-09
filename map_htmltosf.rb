@@ -55,17 +55,9 @@ end
 # =>                      Education - yyyy
 
 
-# recruiters = ['AlisonSmith', 'Emily', 'JingJing',
-#    'KarenDoyle', 'LisaONeill',
-#    'LiWang', 'MikeBrown', 'MyraKumar',
-#    'NeasaWhite', 'NiamhBlack', 'MaryBerry', 'SarahKelly',
-#    'SheilaMcNeice', 'Ruby', 'SheilaDempsey', 'SheilaMcGrath',
-#    'YuChun']
 
-recruiters = ['YuChun']
-
-$headers = ["First Name", "Last Name", "Email", "LinkedIn Profile", "Candidate ID",
-            "Candidate Source", "Title", "Contact Country", "Contact LIN Sector",
+$headers = ["Contact ID", "CV TR", "Account Name", "Linkedin Import Status", "First Name", "Last Name", "Email", "LinkedIn Profile", "Candidate ID", "LIN ID",
+            "LIN 1st Degree", "Title", "Contact Country", "Contact LIN Sector", "Resume Last Updated", "LIN Import Date", "CV Uploaded",
             "Employer 1 Title", "Employer Organization Name 1", "Employer 1 Start Date",
             "Employer 1 End Date", "Employer 1 Location", "Employer 1 Description",
             "Employer 2 Title", "Employer Organization Name 2", "Employer 2 Start Date",
@@ -77,35 +69,67 @@ $headers = ["First Name", "Last Name", "Email", "LinkedIn Profile", "Candidate I
             "Education Degree Name 1", "Education Degree Date 1",
             "Education School 2", "Education Degree Name 2",
             "Education Degree Date 2", "Text Resume"]
+$unparsed_headers = ["Contact ID", "First Name", "Last Name", "Employer Organization Name 1", "Employer 1 Title", "Email", "CV TR", "LIN 1st Degree", "Candidate ID",
+                    "Account Name", "Linkedin Import Status", "Linkedin Profile", "LIN ID"]
 
-def main(recruiter)
-  puts recruiter
+def create_file(f)
+  unless File.exist?(f)
+    FileUtils.touch(f)
+    csv = CSV.open(f, "w+")
+    csv << $headers
+    csv.close
+  end
+end
+def create_filex(f)
+  unless File.exist?(f)
+    FileUtils.touch(f)
+    csv = CSV.open(f, "w+")
+    csv << $unparsed_headers
+    csv.close
+  end
+end
 
-  target_dir = "./../LIN#{recruiter}/round2"
-  parsed_dir = "./../LIN#{recruiter}/round2/parsed"
-  FileUtils.mkdir(parsed_dir) unless Dir.exist?(parsed_dir)
-  output_path = "./../LIN#{recruiter}/round2/LIN#{recruiter}.csv"
-  success_log = "./../LIN#{recruiter}/round2/success_log.csv"
-  create_files(recruiter, output_path)
-  total = %x(wc -l "#{success_log}").split[0].to_i - 1
+def main
+
+  target_dir = "./../run3/profiles"
+  input = "./../run3/lin_results.csv"
+  output_path = "./../run3/parsed_contact_import.csv"
+  unparsed_path = "./../run3/unparsed_contact_import.csv"
+  create_file(output_path)
+  create_filex(unparsed_path)
+  total = %x(wc -l "#{input}").split[0].to_i - 1
   puts "Length of input: #{total} rows.\n"
-  count = 0
+  $count = 0
   output = CSV.open(output_path, "a+", headers: true)
+  u_output = CSV.open(unparsed_path, "a+", headers: true)
 
-  CSV.foreach(success_log, headers: true) do |input_row|
-    count += 1
-    puts "Input Row #{count}/#{total}"
-    candidate_id = input_row["Candidate ID"]
-    target_file = "#{target_dir}/#{candidate_id}.html"
+  CSV.foreach(input, headers: true) do |input_row|
+    $count += 1
+    #puts "Input Row #{count}/#{total}"
+    target_file = "#{target_dir}/#{$count}.html"
     if File.exist?(target_file)
-      #puts "File for #{candidate_id} exists"
+      puts "Found #{$count}"
       output_row = parse_html(target_file, input_row)
       output << output_row
-      FileUtils.mv(target_file, "#{target_dir}/parsed/#{candidate_id}.html")
-
     else
-      puts "File for #{candidate_id} NOT FOUND"
+      output_row_u = CSV::Row.new($unparsed_headers, [], header_row: false)
+      output_row_u["Contact ID"] = input_row["Contact ID"]
+      output_row_u["First Name"] = input_row["First Name"]
+      output_row_u["Last Name"] = input_row["Last Name"]
+      output_row_u["Employer Organization Name 1"] = input_row["Employer Organization Name 1"]
+      output_row_u["Employer 1 Title"] = input_row["Employer 1 Title"]
+      output_row_u["Email"] = input_row["Email"]
+      output_row_u["CV TR"] = input_row["CV TR"]
+      output_row_u["LIN 1st Degree"] = input_row["Candidate Source"]
+      output_row_u["Candidate ID"] = input_row["Candidate ID"]
+      output_row_u["Account Name"] = input_row["Account Name"]
+      output_row_u["Linkedin Import Status"] = input_row["Linkedin Import Status"]
+      output_row_u["Linkedin Profile"] = input_row["Linkedin Profile"]
+      output_row_u["LIN ID"] = $count.to_s
+      u_output << output_row_u
+    #  puts "File for #{candidate_id} NOT FOUND"
     end
+
   end
 
   output.close
@@ -116,8 +140,12 @@ def parse_html(file, input_row)
   page = Nokogiri::HTML(File.read(file))
   row = CSV::Row.new($headers, [], header_row: false)
   name = page.at_css("#name").text.split
+  contact_id = input_row["Contact ID"]
+  cv_tr = input_row["CV TR"]
+  acc_name = input_row["Account Name"]
+  import_status = input_row["Linkedin Import Status"]
   email = input_row["Email"]
-  lin_profile = input_row["Url"]
+  lin_profile = input_row["Linkedin Profile"]
   cand_id = input_row["Candidate ID"]
   cand_source = input_row["Candidate Source"]
   title = page.at_css(".headline.title").text
@@ -328,13 +356,16 @@ def parse_html(file, input_row)
   end
 
 
-
-
+  row["LIN ID"] = $count.to_s
+  row["Contact ID"] = contact_id
+  row["CV TR"] = "1"
+  row["Account Name"] = acc_name
+  row["Linkedin Import Status"] = import_status
   row["First Name"] = name[0].slice(0, 39)
   row["Last Name"] = name[1..-1].join(" ").slice(0, 79)
   row["Email"] = email
   row["Candidate ID"] = cand_id
-  row["Candidate Source"] = cand_source
+  row["LIN 1st Degree"] = cand_source
   row["Title"] = title.slice(0, 127)
   row["Contact Country"] = country
   row["Contact LIN Sector"] = sector.slice(0, 99)
@@ -367,6 +398,10 @@ def parse_html(file, input_row)
   row["Education Degree Date 2"] = format_date(s2_end)
   row["Text Resume"] = text_resume.slice(0, 31999)
   row["LinkedIn Profile"] = lin_profile.slice(0, 254)
+  row["Resume Last Updated"] = "2016-03-07 12:00:00"
+  row["LIN Import Date"] = "2016-03-07"
+  row["CV Uploaded"] = "1"
+
 
   return row
 end
@@ -407,6 +442,4 @@ def create_files(recruiter, output_path)
 
 end
 
-recruiters.each do |recruiter|
-  main(recruiter)
-end
+main

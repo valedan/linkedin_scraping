@@ -57,24 +57,31 @@ $headers = ["Contact", "School Name", "Major", "Graduation Year"]
 #recruiters = ['MariaMurphy', 'SeanMurphy', 'KarenMcHugh', 'JennyDolan', 'JohnSmith']
 
 
-def main(recruiter)
-  puts "Recruiter: #{recruiter}"
+def create_file(f)
+  unless File.exist?(f)
+    FileUtils.touch(f)
+    csv = CSV.open(f, "w+")
+    csv << $headers
+    csv.close
+  end
+end
 
-  target_dir = "./../LIN#{recruiter}/round2"
-  parsed_dir = "./../LIN#{recruiter}/round2/parsed"
-  output_path = "./../LIN#{recruiter}/round2/LIN#{recruiter}_education_history.csv"
-  success_log = "./../LIN#{recruiter}/round2/id_lookup_success.csv"
+def main
 
-  create_files(recruiter, output_path)
+  target_dir = "./../run3/profiles"
+  output_path = "./../run3/education_history.csv"
+  input = "./../run3/history_ref.csv"
+
+  create_file(output_path)
   count = 0
   output = CSV.open(output_path, "a+", headers: true)
 
-  CSV.foreach(success_log, headers: true) do |input_row|
+  CSV.foreach(input, headers: true) do |input_row|
     count += 1
     puts "Input Row #{count}"
-    candidate_id = input_row["Candidate ID"]
     contact_id = input_row["Contact ID"]
-    target_file = "#{parsed_dir}/#{candidate_id}.html"
+    lin_id = input_row["LIN ID"]
+    target_file = "#{target_dir}/#{lin_id}.html"
     if File.exist?(target_file)
       output_rows = parse_html(target_file, contact_id)
       output_rows.each do |output_row|
@@ -82,7 +89,7 @@ def main(recruiter)
       end
 
     else
-      puts "File for #{candidate_id} NOT FOUND"
+      puts "File for #{lin_id} NOT FOUND"
     end
   end
 
@@ -147,6 +154,4 @@ def create_files(recruiter, output_path)
 
 end
 
-recruiters.each do |recruiter|
-  main(recruiter)
-end
+main
