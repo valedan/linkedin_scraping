@@ -4,9 +4,9 @@ require 'fileutils'
 
 
 
-input_dir = './../run3'
-lin_csv = "#{input_dir}/merged_test.csv"
-sf_csv = "#{input_dir}/sf_ref_test.csv"
+input_dir = './..'
+lin_csv = "#{input_dir}/bb.csv"
+sf_csv = "#{input_dir}/sf_ref.csv"
 lin_emails = []
 
 sf_data = CSV.read(sf_csv, headers: true, return_headers: true)
@@ -22,7 +22,7 @@ def create_file(f)
   end
 end
 
-output_csv = "#{input_dir}/cross_ref_test.csv"
+output_csv = "#{input_dir}/bb_sf_crossref3.csv"
 
 create_file(output_csv)
 
@@ -47,8 +47,8 @@ end
 
 
 CSV.foreach(lin_csv, headers: true) do |lin_row|
-  email = lin_row['E-mail Address'].downcase
-  lin_emails << email
+  email = lin_row['Email Address']
+  lin_emails << email&.downcase
 end
 
 lin_data = CSV.read(lin_csv, headers: true, return_headers: true)
@@ -59,28 +59,16 @@ CSV.foreach(sf_csv, headers: true, return_headers: true) do |sf_row|
   sf_index += 1
   puts "sf: #{sf_index}"
   sf_emails = []
-  sf_emails << sf_row['Email'].downcase if sf_row['Email']
-  sf_emails << sf_row['Email 2'].downcase if sf_row['Email 2']
-  sf_emails << sf_row['Email 3'].downcase if sf_row['Email 3']
+  sf_emails << sf_row['Email']&.downcase if sf_row['Email']
+  sf_emails << sf_row['Email 2']&.downcase if sf_row['Email 2']
+  sf_emails << sf_row['Email 3']&.downcase if sf_row['Email 3']
   #puts sf_emails
 
   target_lin_row_num = lin_emails.find_index do |lin_email|
     sf_emails.include?(lin_email)
   end
   if target_lin_row_num
-    sf_row['Candidate Source'] = lin_data[target_lin_row_num]['Recruiter']
-    unless lin_data[target_lin_row_num]['First Name'].nil?
-      sf_row['First Name'] = lin_data[target_lin_row_num]['First Name']
-    end
-    unless lin_data[target_lin_row_num]['Last Name'].nil?
-      sf_row['Last Name'] = lin_data[target_lin_row_num]['Last Name']
-    end
-    unless lin_data[target_lin_row_num]['Company'].nil?
-      sf_row['Employer Organization Name 1'] = lin_data[target_lin_row_num]['Company']
-    end
-    unless lin_data[target_lin_row_num]['Job Title'].nil?
-      sf_row['Employer 1 Title'] = lin_data[target_lin_row_num]['Job Title']
-    end
+    sf_row['Candidate Source'] = lin_data[target_lin_row_num]['Candidate Source']
     lin_data.delete(target_lin_row_num)
     lin_emails.delete_at(target_lin_row_num)
     append_to_csv(output_csv, sf_row)
@@ -92,12 +80,9 @@ lin_data.each do |lin_row|
   lin_index += 1
   puts "lin: #{lin_index}"
   new_sf_row = CSV::Row.new(sf_headers, [])
-  new_sf_row['Candidate Source'] = lin_row['Recruiter']
-  new_sf_row['First Name'] = lin_row['First Name']
-  new_sf_row['Last Name'] = lin_row['Last Name']
-  new_sf_row['Email'] = lin_row['E-mail Address']
-  new_sf_row['Employer Organization Name 1'] = lin_row['Company']
-  new_sf_row['Employer 1 Title'] = lin_row['Job Title']
+  new_sf_row['Candidate Source'] = lin_row['Candidate Source']
+  new_sf_row['Email'] = lin_row['Email Address']
   new_sf_row['Account Name'] = 'Candidates'
+  new_sf_row['Contact Record Type'] = 'Candidate'
   append_to_csv(output_csv, new_sf_row)
 end
